@@ -316,31 +316,37 @@ def backfill_predictions_for_monitoring(weather_fg, air_quality_df, monitor_fg, 
 
     last_pm25_1d = air_quality_df['pm25'].ffill().iloc[-1]
     last_pm25_2d = air_quality_df['pm25'].ffill().iloc[-2] if len(air_quality_df) > 1 else last_pm25_1d
+    last_pm25_3d = air_quality_df['pm25'].ffill().iloc[-3] if len(air_quality_df) > 2 else last_pm25_2d
 
     pm25_last_1d_list = []
     pm25_last_2d_list = []
+    pm25_last_3d_list = []
     predictions = []
 
     for idx in range(len(features_df)):
         features_df.loc[features_df.index[idx], 'pm25_last_1d'] = last_pm25_1d
         features_df.loc[features_df.index[idx], 'pm25_last_2d'] = last_pm25_2d
+        features_df.loc[features_df.index[idx], 'pm25_last_3d'] = last_pm25_3d
 
         pm25_last_1d_list.append(last_pm25_1d)
         pm25_last_2d_list.append(last_pm25_2d)
+        pm25_last_3d_list.append(last_pm25_3d)
 
         feature_row = features_df.loc[features_df.index[idx],
-                                      ['pm25_last_1d', 'pm25_last_2d',
+                                      ['pm25_last_1d', 'pm25_last_2d', 'pm25_last_3d',
                                        'temperature_2m_mean',
                                        'precipitation_sum',
                                        'wind_speed_10m_max',
                                        'wind_direction_10m_dominant']].values.reshape(1, -1)
         predicted_pm25 = model.predict(feature_row)[0]
         predictions.append(predicted_pm25)
+        last_pm25_3d = last_pm25_2d
         last_pm25_2d = last_pm25_1d
         last_pm25_1d = predicted_pm25
 
     features_df['pm25_last_1d'] = pm25_last_1d_list
     features_df['pm25_last_2d'] = pm25_last_2d_list
+    features_df['pm25_last_3d'] = pm25_last_3d_list
     features_df['predicted_pm25'] = predictions
 
     df = pd.merge(features_df, air_quality_df[['date', 'pm25', 'street', 'country']], on="date")
