@@ -118,3 +118,15 @@ To implement windowing for inference, instead of predicting all the pm25 at once
 Predictions for a one day windowing
 ![alt text](image-7.png)
 
+### Score with 2 day windowing
+
+MSE: 93.14161
+R squared: 0.7895873168681785
+
+There is a very slight to no improve from 1 day to 2 day windowing, even if PM25 of 2 days ago is highly correlated with the PM25 of today. That is because all the information carried by the PM25 of 2 days ago is also carried by the PM25 of yesterday.
+
+Predictions for a two day monitoring
+![alt text](image-8.png)
+
+### Score with 3 day windowing
+
