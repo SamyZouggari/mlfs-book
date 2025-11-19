@@ -62,4 +62,20 @@ R squared: 0.41135491104827304
 
 ![predictions vs observations for 34% train/test](image-3.png)
 
-The tendancy is that when the ratio increases, the accuracy increases, but at a certain extent. Here, I decided that it was good like that.
+The tendancy is that when the ratio increases, the accuracy increases, but at a certain extent. Here, I decided that it was good like that. Let's keep it and move on to the next point
+
+## Feature engineering
+
+Currently, we have 4 weather features : 'temperature_2m_mean' , 'wind_direction_10m_dominant', 'wind_speed_10m_max', 'precipitation_sum'
+
+I've tried to add weather features like 'sunshine duration', 'daylight duration' etc. but it needs to be accorded with the hourly forecast in the second notebook. Since it is painful to add historical weather feature making sure that we can retrieves it from a forecast, we decided not to do that.
+
+However, what we wanted to add was not that correlated with PM25 as the correlation matrix shows 
+
+![Correlation matrix for new features](image-4.png)
+
+### To improve the model, we could try extracting new features from these, to maximize the correlation.
+
+It takes to test the perfect combination so let's move on.
+
+## Fine tune the model.
