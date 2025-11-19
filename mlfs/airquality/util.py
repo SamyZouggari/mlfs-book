@@ -181,6 +181,29 @@ def get_pm25(aqicn_url: str, country: str, city: str, street: str, day: datetime
 
     return aq_today_df
 
+def get_pm25_last_k_days(air_quality_fg, day: datetime.date, k: int, country: str, city: str, street: str):
+    """
+    Returns DataFrame with air quality (pm25) for last k days as dataframe
+    """
+    df = air_quality_fg.read()
+    df['date'] = df['date'].dt.tz_localize(None)
+    start_date = pd.to_datetime(day - datetime.timedelta(days=k))
+    end_date = pd.to_datetime(day)
+
+    mask = (
+        (df['date'] >= start_date) &
+        (df['date'] < end_date) &
+        (df['city'] == city) &
+        (df['street'] == street)
+    )    
+    aq_last_k_days_df = df.loc[mask].copy()
+
+    aq_last_k_days_df = aq_last_k_days_df.sort_values('date').reset_index(drop=True)
+    full_idx = pd.date_range(start=start_date, end=day - datetime.timedelta(days=1), freq='D')
+    aq_last_k_days_df = aq_last_k_days_df.set_index('date').reindex(full_idx)
+    aq_last_k_days_df['pm25'] = aq_last_k_days_df['pm25'].fillna(method='ffill')
+    aq_last_k_days_df = aq_last_k_days_df.reset_index().rename(columns={'index': 'date'})
+    return aq_last_k_days_df
 
 def plot_air_quality_forecast(city: str, street: str, df: pd.DataFrame, file_path: str, hindcast=False):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -289,12 +312,32 @@ def check_file_path(file_path):
 
 def backfill_predictions_for_monitoring(weather_fg, air_quality_df, monitor_fg, model):
     features_df = weather_fg.read()
-    features_df = features_df.sort_values(by=['date'], ascending=True)
-    features_df = features_df.tail(10)
-    features_df['predicted_pm25'] = model.predict(features_df[['temperature_2m_mean', 'precipitation_sum', 'wind_speed_10m_max', 'wind_direction_10m_dominant']])
+    features_df = features_df.sort_values(by=['date'], ascending=True).tail(10)
+
+    last_pm25 = air_quality_df['pm25'].ffill().iloc[-1]
+    pm25_last_1d_list = []
+    predictions = []
+
+    for idx in range(len(features_df)):
+        features_df.loc[features_df.index[idx], 'pm25_last_1d'] = last_pm25
+        pm25_last_1d_list.append(last_pm25)
+
+        feature_row = features_df.loc[features_df.index[idx], 
+                                      ['pm25_last_1d', 'temperature_2m_mean', 
+                                       'precipitation_sum', 'wind_speed_10m_max', 
+                                       'wind_direction_10m_dominant']].values.reshape(1, -1)
+        predicted_pm25 = model.predict(feature_row)[0]
+        predictions.append(predicted_pm25)
+        last_pm25 = predicted_pm25
+
+    features_df['pm25_last_1d'] = pm25_last_1d_list
+    features_df['predicted_pm25'] = predictions
+
     df = pd.merge(features_df, air_quality_df[['date','pm25','street','country']], on="date")
     df['days_before_forecast_day'] = 1
-    hindcast_df = df
+    hindcast_df = df.copy()
     df = df.drop('pm25', axis=1)
     monitor_fg.insert(df, write_options={"wait_for_job": True})
+
     return hindcast_df
+

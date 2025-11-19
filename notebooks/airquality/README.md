@@ -87,3 +87,34 @@ A simple GridSearchCV to fine tune the parameter of the tree has improved the ac
 MSE: 229.48044
 R squared: 0.4820626479515786
 
+## Auto-regression
+
+The last thing is Auto-regression which is required for grade C. To do so, we need to add 3 features that corresponds to the PM25 of the last 3 days. It will be complicated because we can't do a request to get pm25 of the last days from the API. So we have to get it from the feature group and deal with the case of missing values.
+
+Before doing that, the positive points of auto-regression is that it will improve the accuracy of the model because the PM25 of the last days is highly correlated with the one of today.
+
+However, the problem of doing that come in prediction. Because we have no choice but to use predicted PM25 as feature to predict new PM25. It is risky because errors would propagate.
+
+Using more days for windowing increases this risk as more errors will propagate.
+
+First, let's see the chart of the predictions for the next days with our model without windowing
+
+![Without windowing](image-5.png)
+
+So how to implement windowing. For the backfill, I used a map between the date and PM25 because a simple shift is not enough in case we have missing data. We don't want the lag to be filled with PM25 of 2 weeks ago for example. Instead, we do a forward filling. Same thing when retrieving daily feature, we've added a method called "get_pm25_last_k_days" that retrieves the PM25 of the last k days, by setting the date as index, paying attention to fill na values with forward filling.
+
+
+### Score with 1 day windowing
+
+MSE: 95.67297
+R squared: 0.7838688225921453
+
+A really big improve, this is explained by the high correlation between the new feature and the target. 
+
+![alt text](image-6.png)
+
+To implement windowing for inference, instead of predicting all the pm25 at once, iterations are needed to fill every lag feature with the one that has been predicted before.
+
+Predictions for a one day windowing
+![alt text](image-7.png)
+
