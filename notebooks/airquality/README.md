@@ -20,7 +20,9 @@ After that, I run the notebooks as they were and logged the performance of the m
 MSE: 213.83423
 R squared: -0.06340524613581633
 
-I think the model is bad, but it is comprehensible since we have a few features, and that air quality could not be explained by only these features.
+![predictions vs observations for standard parametrization](image-1.png)
+
+I think the model is not very good, but it is comprehensible since we have a few features, and that air quality could not be explained by only these features.
 
 ## Improving the model
 
@@ -31,3 +33,33 @@ We can think of improving the model by :
 - Adding auto-regression (later).
 
 ### Increasing the ratio train/test set
+
+In our first way of improving the model, let's adjust the ratio of test/training dataset.
+The current ratio is 176/1826 which is 10 %
+
+Let's see what happens if we increase it to 15 %
+So I changed the date of the frontier to 2025-01-01, we have now : 
+
+MSE: 310.94174
+R squared: 0.385145135232303
+
+Higher MSE but higher R squared, so it is difficult to conclude
+![predictions vs observations for 15% train/test](image.png) 
+
+By seeing this plot we can be satisfied, the predictions seems to be better, but before the other point, let's increase the ratio to 25%
+I changed the frontier to 2024-09-01
+
+MSE: 290.2019
+R squared: 0.40544789044128504
+
+That is quite better, ![predictions vs observations for 25% train/test](image-2.png)
+
+The dataset is very small (2000 rows) so maybe a higher ratio would be better.
+
+Here is the metrics for a ratio of 34%
+MSE: 260.80862
+R squared: 0.41135491104827304
+
+![predictions vs observations for 34% train/test](image-3.png)
+
+The tendancy is that when the ratio increases, the accuracy increases, but at a certain extent. Here, I decided that it was good like that.
