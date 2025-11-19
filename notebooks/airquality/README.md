@@ -79,3 +79,11 @@ However, what we wanted to add was not that correlated with PM25 as the correlat
 It takes to test the perfect combination so let's move on.
 
 ## Fine tune the model.
+
+As our target depend on the date, it will be non productive to do a basic KFold cross validation. 
+
+A simple GridSearchCV to fine tune the parameter of the tree has improved the accuracy of the model. It is now at :
+
+MSE: 229.48044
+R squared: 0.4820626479515786
+
