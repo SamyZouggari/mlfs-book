@@ -130,3 +130,11 @@ Predictions for a two day monitoring
 
 ### Score with 3 day windowing
 
+MSE: 94.039116
+R squared: 0.7875598061796693
+
+Predictions for a three day monitoring
+![alt text](image-9.png)
+
+
+(say that the observations are less accurate for 3 days)
