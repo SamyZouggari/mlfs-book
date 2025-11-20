@@ -1,24 +1,25 @@
 ## Air quality project
 
-The project is a fork from https://github.com/featurestorebook/mlfs-book
+(Fork of https://github.com/featurestorebook/mlfs-book)
 
-A lot of commits have been erased because I tried to do a push --force when git was broken about an hour ago (yes I panicked).
+A lot of commits have been erased because I tried to do a push --force when git was broken.
 
 To sum up the commits that can't be seen, here is what we did : 
 - running the 4 first notebooks.
 - setting up a daily workflow with github actions and a dashboard with pages.
-- Tried different location because we thought that a negative r-squared was exceptionnaly bad, so we thought our sensors were broken (we no longer think that).
+- Tried different location because we thought that a negative r-squared was exceptionnaly bad, so we thought our sensors were broken.
 - changed the sensor to this one.
 - adding 3 features corresponding to the lag pm25 for 3 days, then for one day.
 
 ## Beginning
 
-The first modifications were to change the .env and to put my personal API keys, to change the csv file with a sensor located in Saint-Martin-d'Hères, France (location of my former school, ENSIMAG).
+The first modifications were to change the .env and to put my personal API keys and to change the csv file with a sensor located in Saint-Martin-d'Hères, France (location of my former school, ENSIMAG).
 
-After that, I run the notebooks as they were and logged the performance of the model.
+After that, I ran the notebooks as they were and logged the performance of the model.
 
-MSE: 213.83423
-R squared: -0.06340524613581633
+MSE: 213.8
+
+R squared: -0.06
 
 ![predictions vs observations for standard parametrization](image-1.png)
 
@@ -40,25 +41,30 @@ The current ratio is 176/1826 which is 10 %
 Let's see what happens if we increase it to 15 %
 So I changed the date of the frontier to 2025-01-01, we have now : 
 
-MSE: 310.94174
-R squared: 0.385145135232303
+MSE: 310.9
+
+R squared: 0.385
 
 Higher MSE but higher R squared, so it is difficult to conclude
 ![predictions vs observations for 15% train/test](image.png) 
 
-By seeing this plot we can be satisfied, the predictions seems to be better, but before the other point, let's increase the ratio to 25%
+By seeing this plot we can be satisfied, the predictions seems to be slightly better, but before the other point, let's increase the ratio to 25%.
+
 I changed the frontier to 2024-09-01
 
-MSE: 290.2019
-R squared: 0.40544789044128504
+MSE: 290.2
+
+R squared: 0.405
 
 That is quite better, ![predictions vs observations for 25% train/test](image-2.png)
 
 The dataset is very small (2000 rows) so maybe a higher ratio would be better.
 
 Here is the metrics for a ratio of 34%
-MSE: 260.80862
-R squared: 0.41135491104827304
+
+MSE: 260.8
+
+R squared: 0.411
 
 ![predictions vs observations for 34% train/test](image-3.png)
 
@@ -76,7 +82,7 @@ However, what we wanted to add was not that correlated with PM25 as the correlat
 
 ### To improve the model, we could try extracting new features from these, to maximize the correlation.
 
-It takes to test the perfect combination so let's move on.
+It takes time to test the perfect combination so let's move on.
 
 ## Fine tune the model.
 
@@ -84,8 +90,9 @@ As our target depend on the date, it will be non productive to do a basic KFold 
 
 A simple GridSearchCV to fine tune the parameter of the tree has improved the accuracy of the model. It is now at :
 
-MSE: 229.48044
-R squared: 0.4820626479515786
+MSE: 229.5
+
+R squared: 0.48
 
 ## Auto-regression
 
@@ -101,7 +108,7 @@ First, let's see the chart of the predictions for the next days with our model w
 
 ![Without windowing](image-5.png)
 
-So how to implement windowing. For the backfill, I used a map between the date and PM25 because a simple shift is not enough in case we have missing data. We don't want the lag to be filled with PM25 of 2 weeks ago for example. Instead, we do a forward filling. Same thing when retrieving daily feature, we've added a method called "get_pm25_last_k_days" that retrieves the PM25 of the last k days, by setting the date as index, paying attention to fill na values with forward filling.
+So how to implement windowing. For the backfill, I sorted the dataframe according to the date and then did a shifting with forward filling. Same thing when retrieving daily feature, we've added a method called "get_pm25_last_k_days" that retrieves the PM25 of the last k days, by setting the date as index, paying attention to fill na values with forward filling.
 
 
 ### Score with 1 day windowing
@@ -109,7 +116,7 @@ So how to implement windowing. For the backfill, I used a map between the date a
 MSE: 95.67297
 R squared: 0.7838688225921453
 
-A really big improve, this is explained by the high correlation between the new feature and the target. 
+A big improve, this is explained by the high correlation between the new feature and the target. 
 
 ![alt text](image-6.png)
 
@@ -136,5 +143,16 @@ R squared: 0.7875598061796693
 Predictions for a three day monitoring
 ![alt text](image-9.png)
 
+The observations differ when implementing auto-regression or not. They also differ between a window of 1 day or more.
 
-(say that the observations are less accurate for 3 days)
+We can't say directly what model will predict the best, we need to wait the real values before. 
+However, we can see that the performance of the trained model is higher with auto-regression than without. But it is almost the same whether for one, two or three added features. 
+
+So we can conclude that adding only one lag feature is sufficient since more features does not improve significantly the accuracy of the model. The biggest correlation is provided by the first lag feature as it is shown here.
+(workflow)
+
+![alt text](image-10.png)
+
+## Workflow and dashboard
+
+A daily workflow is set using github actions and a dashboard is accessible with the following link https://samyzouggari.github.io/mlfs-book/air-quality/
