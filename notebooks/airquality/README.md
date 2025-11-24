@@ -21,7 +21,7 @@ MSE: 213.8
 
 R squared: -0.06
 
-![predictions vs observations for standard parametrization](image-1.png)
+![predictions vs observations for standard parametrization](pictures_report/image-1.png)
 
 I think the model is not very good, but it is comprehensible since we have a few features, and that air quality could not be explained by only these features.
 
@@ -46,7 +46,7 @@ MSE: 310.9
 R squared: 0.385
 
 Higher MSE but higher R squared, so it is difficult to conclude
-![predictions vs observations for 15% train/test](image.png) 
+![predictions vs observations for 15% train/test](pictures_report/image.png) 
 
 By seeing this plot we can be satisfied, the predictions seems to be slightly better, but before the other point, let's increase the ratio to 25%.
 
@@ -56,7 +56,7 @@ MSE: 290.2
 
 R squared: 0.405
 
-That is quite better, ![predictions vs observations for 25% train/test](image-2.png)
+That is quite better, ![predictions vs observations for 25% train/test](pictures_report/image-2.png)
 
 The dataset is very small (2000 rows) so maybe a higher ratio would be better.
 
@@ -66,7 +66,7 @@ MSE: 260.8
 
 R squared: 0.411
 
-![predictions vs observations for 34% train/test](image-3.png)
+![predictions vs observations for 34% train/test](pictures_report/image-3.png)
 
 The tendancy is that when the ratio increases, the accuracy increases, but at a certain extent. Here, I decided that it was good like that. Let's keep it and move on to the next point
 
@@ -78,7 +78,7 @@ I've tried to add weather features like 'sunshine duration', 'daylight duration'
 
 However, what we wanted to add was not that correlated with PM25 as the correlation matrix shows 
 
-![Correlation matrix for new features](image-4.png)
+![Correlation matrix for new features](pictures_report/image-4.png)
 
 ### To improve the model, we could try extracting new features from these, to maximize the correlation.
 
@@ -106,7 +106,7 @@ Using more days for windowing increases this risk as more errors will propagate.
 
 First, let's see the chart of the predictions for the next days with our model without windowing
 
-![Without windowing](image-5.png)
+![Without windowing](pictures_report/image-5.png)
 
 So how to implement windowing. For the backfill, I sorted the dataframe according to the date and then did a shifting with forward filling. Same thing when retrieving daily feature, we've added a method called "get_pm25_last_k_days" that retrieves the PM25 of the last k days, by setting the date as index, paying attention to fill na values with forward filling.
 
@@ -118,12 +118,12 @@ R squared: 0.7838688225921453
 
 A big improve, this is explained by the high correlation between the new feature and the target. 
 
-![alt text](image-6.png)
+![alt text](pictures_report/image-6.png)
 
 To implement windowing for inference, instead of predicting all the pm25 at once, iterations are needed to fill every lag feature with the one that has been predicted before.
 
 Predictions for a one day windowing
-![alt text](image-7.png)
+![alt text](pictures_report/image-7.png)
 
 ### Score with 2 day windowing
 
@@ -133,7 +133,7 @@ R squared: 0.7895873168681785
 There is a very slight to no improve from 1 day to 2 day windowing, even if PM25 of 2 days ago is highly correlated with the PM25 of today. That is because all the information carried by the PM25 of 2 days ago is also carried by the PM25 of yesterday.
 
 Predictions for a two day monitoring
-![alt text](image-8.png)
+![alt text](pictures_report/image-8.png)
 
 ### Score with 3 day windowing
 
@@ -141,7 +141,7 @@ MSE: 94.039116
 R squared: 0.7875598061796693
 
 Predictions for a three day monitoring
-![alt text](image-9.png)
+![alt text](pictures_report/image-9.png)
 
 The observations differ when implementing auto-regression or not. They also differ between a window of 1 day or more.
 
@@ -151,7 +151,7 @@ However, we can see that the performance of the trained model is higher with aut
 So we can conclude that adding only one lag feature is sufficient since more features does not improve significantly the accuracy of the model. The biggest correlation is provided by the first lag feature as it is shown here.
 (workflow)
 
-![alt text](image-10.png)
+![alt text](pictures_report/image-10.png)
 
 ## Workflow and dashboard
 
